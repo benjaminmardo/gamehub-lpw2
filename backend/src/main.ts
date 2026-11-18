@@ -6,8 +6,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({ origin: 'http://localhost:5173' });
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  app.enableCors({ origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5173' });
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
 
   const config = new DocumentBuilder()
     .setTitle('GameHub IPVG API')

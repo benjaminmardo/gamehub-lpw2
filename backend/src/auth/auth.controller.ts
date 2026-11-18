@@ -1,4 +1,12 @@
-import { Controller } from '@nestjs/common';
-
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { AuthService } from './auth.service';
+import { RegistroDto } from './dto/registro.dto';
+import { LoginDto } from './dto/login.dto';
+@ApiTags('Auth')
 @Controller('auth')
-export class AuthController {}
+export class AuthController {
+  constructor(private readonly auth: AuthService) {}
+  @Post('registro') registro(@Body() dto: RegistroDto) { return this.auth.registro(dto); }
+  @Post('login') @HttpCode(200) login(@Body() dto: LoginDto) { return this.auth.login(dto); }
+}

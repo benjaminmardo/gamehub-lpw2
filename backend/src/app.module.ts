@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { Usuario } from './usuarios/entities/usuario.entity';
 import { UsuariosModule } from './usuarios/usuarios.module';
+import { EquiposModule } from './equipos/equipos.module';
 
 @Module({
   imports: [
@@ -15,11 +16,13 @@ import { UsuariosModule } from './usuarios/usuarios.module';
       username: process.env.DB_USERNAME || 'root',
       password: process.env.DB_PASSWORD || '',
       database: process.env.DB_DATABASE || 'gamehub_lpw2',
-      entities: [Usuario],
-      synchronize: true, // Crea automáticamente las tablas en desarrollo
+      timezone: 'Z',
+      autoLoadEntities: true,
+      synchronize: process.env.DB_SYNCHRONIZE === 'true',
     }),
     AuthModule,
     UsuariosModule,
+    EquiposModule,
   ],
 })
 export class AppModule {}
