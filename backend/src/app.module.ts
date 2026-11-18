@@ -7,6 +7,7 @@ import { UsuariosModule } from './usuarios/usuarios.module';
 import { EquiposModule } from './equipos/equipos.module';
 import { TorneosModule } from './torneos/torneos.module';
 import { InscripcionesModule } from './inscripciones/inscripciones.module';
+import { PartidosModule } from './partidos/partidos.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { InscripcionesModule } from './inscripciones/inscripciones.module';
     EquiposModule,
     TorneosModule,
     InscripcionesModule,
+    PartidosModule,
   ],
 })
 export class AppModule {}
