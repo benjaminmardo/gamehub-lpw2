@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { Usuario } from './usuarios/entities/usuario.entity';
+import { UsuariosModule } from './usuarios/usuarios.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { Usuario } from './usuarios/entities/usuario.entity';
       synchronize: true, // Crea automáticamente las tablas en desarrollo
     }),
     AuthModule,
+    UsuariosModule,
   ],
 })
 export class AppModule {}
