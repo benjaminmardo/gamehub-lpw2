@@ -1,27 +1,34 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { api } from '../services/api'
 import { isAdmin } from '../services/auth'
+import FiltrosTorneos from '../components/FiltrosTorneos.vue'
+const filtros = ref({ q: '', videojuego: '', estado: '', modalidad: '', fecha: '' })
+let version = 0, demora
 const torneos = ref([]), cargando = ref(true), error = ref('')
 const abiertos = computed(() => torneos.value.filter(t => t.estado === 'ABIERTO').length)
 const fecha = valor => new Date(valor).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })
 async function cargar() {
-  cargando.value = true; error.value = ''
-  try { torneos.value = await api('/torneos') }
-  catch (e) { error.value = e.message }
-  finally { cargando.value = false }
+  const actual = ++version; cargando.value = true; error.value = ''
+  const parametros = new URLSearchParams(Object.entries(filtros.value).filter(([, valor]) => valor))
+  try { const datos = await api('/torneos?' + parametros.toString()); if (actual === version) torneos.value = datos }
+  catch (e) { if (actual === version) error.value = e.message }
+  finally { if (actual === version) cargando.value = false }
 }
+watch(filtros, () => { clearTimeout(demora); ++version; cargando.value = true; demora = setTimeout(cargar, 300) }, { deep: true })
 onMounted(cargar)
+onBeforeUnmount(() => { clearTimeout(demora); ++version })
 </script>
 <template>
   <section>
     <div class="page-head"><div><span class="eyebrow">ELIGE TU PRÓXIMO DESAFÍO</span><h1>La arena te espera.</h1><p>Encuentra un torneo, reúne a tu equipo y representa a IPVG.</p></div><RouterLink v-if="isAdmin" class="button" to="/torneos/nuevo">Crear torneo</RouterLink></div>
     <div class="arena-banner panel"><div><span class="badge badge-mint">COMUNIDAD COMPETITIVA</span><h2>Juega en equipo.<br><span>Haz historia en la arena.</span></h2><p>Torneos organizados por tu comunidad, desde la primera partida hasta el último punto.</p></div><div class="trophy-art" aria-hidden="true"><span>✦</span><strong>GH</strong><small>GAME ON</small></div></div>
+    <FiltrosTorneos v-model="filtros" />
     <div class="section-head"><h2>Explora los torneos</h2><span v-if="!cargando && !error" class="result-count">{{ torneos.length }} torneos · {{ abiertos }} abiertos</span></div>
     <p v-if="cargando" class="panel loading-state" role="status">Cargando torneos…</p>
     <div v-else-if="error" class="alert alert-error" role="alert">{{ error }} <button class="text-button" @click="cargar">Reintentar</button></div>
-    <div v-else-if="!torneos.length" class="panel empty-state"><span class="empty-icon" aria-hidden="true">✦</span><h2>La próxima competencia está por llegar</h2><p>Los torneos publicados aparecerán aquí.</p></div>
+    <div v-else-if="!torneos.length" class="panel empty-state"><span class="empty-icon" aria-hidden="true">✦</span><h2>No encontramos torneos</h2><p>Prueba otra búsqueda o cambia los filtros seleccionados.</p></div>
     <div v-else class="card-grid">
       <RouterLink v-for="torneo in torneos" :key="torneo.id" class="panel tournament-card" :to="'/torneos/' + torneo.id">
         <div class="game-art" :class="{ 'game-art-mint': torneo.id % 2 === 0 }"><span>{{ torneo.videojuego }}</span><strong aria-hidden="true">✦</strong><small>IPVG ESPORTS</small></div>
