@@ -8,6 +8,7 @@ import { EquiposModule } from './equipos/equipos.module';
 import { TorneosModule } from './torneos/torneos.module';
 import { InscripcionesModule } from './inscripciones/inscripciones.module';
 import { PartidosModule } from './partidos/partidos.module';
+import { ResultadosModule } from './resultados/resultados.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { PartidosModule } from './partidos/partidos.module';
     TorneosModule,
     InscripcionesModule,
     PartidosModule,
+    ResultadosModule,
   ],
 })
 export class AppModule {}
