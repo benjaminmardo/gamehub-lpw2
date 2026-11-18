@@ -5,12 +5,13 @@ import { Torneo } from './entities/torneo.entity';
 import { TorneosService } from './torneos.service';
 
 describe('Cambios de cupo del torneo', () => {
-  const manager = { findOne: jest.fn(), count: jest.fn(), save: jest.fn() };
+  const manager = { findOne: jest.fn(), count: jest.fn(), save: jest.fn(), existsBy: jest.fn() };
   let service: TorneosService;
   beforeEach(() => {
     jest.resetAllMocks();
     manager.findOne.mockResolvedValue({ id: 3, cupoMaximo: 8, fechaInicio: new Date('2027-02-01T18:00:00Z'), cierreInscripcion: new Date('2027-01-31T18:00:00Z') });
     manager.count.mockResolvedValue(4);
+    manager.existsBy.mockResolvedValue(true);
     manager.save.mockImplementation(async (_entity, torneo) => torneo);
     const repo = { manager: { transaction: async (callback: (em: EntityManager) => unknown) => callback(manager as unknown as EntityManager) } };
     service = new TorneosService(repo as unknown as Repository<Torneo>);
@@ -27,5 +28,9 @@ describe('Cambios de cupo del torneo', () => {
   it('informa 404 dentro de la transacción', async () => {
     manager.findOne.mockResolvedValue(null);
     await expect(service.update(99, { cupoMaximo: 6 })).rejects.toBeInstanceOf(NotFoundException);
+  });
+  it('preserva la regla de empate si ya existen partidos', async () => {
+    await expect(service.update(3, { permiteEmpate: false })).rejects.toBeInstanceOf(ConflictException);
+    expect(manager.save).not.toHaveBeenCalled();
   });
 });

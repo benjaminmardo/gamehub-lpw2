@@ -5,6 +5,7 @@ import { FiltrarTorneosDto } from './dto/filtrar-torneos.dto';
 import { CrearTorneoDto, ActualizarTorneoDto } from './dto/crear-torneo.dto';
 import { EstadoInscripcion, Inscripcion } from '../inscripciones/entities/inscripcion.entity';
 import { Torneo } from './entities/torneo.entity';
+import { Partido } from '../partidos/entities/partido.entity';
 
 @Injectable()
 export class TorneosService {
@@ -51,6 +52,9 @@ export class TorneosService {
     return this.torneos.manager.transaction(async (manager) => {
       const torneo = await manager.findOne(Torneo, { where: { id }, lock: { mode: 'pessimistic_write' } });
       if (!torneo) throw new NotFoundException('Torneo no encontrado');
+      if (dto.permiteEmpate !== undefined && dto.permiteEmpate !== torneo.permiteEmpate && await manager.existsBy(Partido, { torneoId: id })) {
+        throw new ConflictException('La regla de empate no puede cambiar cuando ya hay partidos programados');
+      }
       const { fechaInicio, cierreInscripcion, ...datos } = dto;
       Object.assign(torneo, datos);
       if (fechaInicio !== undefined) torneo.fechaInicio = new Date(fechaInicio);
