@@ -1,8 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { reactive } from 'vue'
 import { session, refreshProfile, isAdmin } from '../services/auth'
+import { partidosRankingRoutes } from './partidos-ranking'
+export const navigationFailure = reactive({ message: '', path: '' })
 const router = createRouter({
  history: createWebHistory(),
  routes: [
+    ...partidosRankingRoutes,
   { path: '/', redirect: '/torneos' },
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { title: 'Iniciar sesión', guest: true } },
   { path: '/registro', name: 'registro', component: () => import('../views/RegisterView.vue'), meta: { title: 'Crear cuenta', guest: true } },
@@ -17,9 +21,15 @@ const router = createRouter({
  ],
 })
 router.beforeEach(async (to) => {
+ navigationFailure.message = ''
  if ((to.meta.requiresAuth || to.meta.admin) && !session.token) return { name: 'login', query: { redirect: to.fullPath } }
  if (session.token && (to.meta.requiresAuth || to.meta.admin)) {
-  try { await refreshProfile() } catch (error) { if (error.status === 401) return { name: 'login', query: { redirect: to.fullPath } }; throw error }
+  try { await refreshProfile() } catch (error) {
+   if (error.status === 401) return { name: 'login', query: { redirect: to.fullPath } }
+   navigationFailure.message = error.message
+   navigationFailure.path = to.fullPath
+   return false
+  }
  }
  if (to.meta.admin && !isAdmin.value) return { name: 'perfil' }
  if (to.meta.guest && session.token) return { name: 'perfil' }

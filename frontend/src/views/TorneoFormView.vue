@@ -8,13 +8,15 @@ const valoresIniciales = { nombre: '', videojuego: '', modalidad: 'LIGA', fechaI
 const form = reactive({ ...valoresIniciales })
 const cargando = ref(false), guardando = ref(false), error = ref(''), disponible = ref(false)
 function localDate(valor) { const d = new Date(valor); return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16) }
+let version = 0
 async function cargar() {
+  const actual = ++version
   disponible.value = false; error.value = ''
   if (!editando.value) { Object.assign(form, valoresIniciales); cargando.value = false; disponible.value = true; return }
   cargando.value = true
-  try { const t = await api('/torneos/' + route.params.id); Object.assign(form, { nombre: t.nombre, videojuego: t.videojuego, modalidad: t.modalidad, fechaInicio: localDate(t.fechaInicio), cierreInscripcion: localDate(t.cierreInscripcion), cupoMaximo: t.cupoMaximo, estado: t.estado, permiteEmpate: t.permiteEmpate }); disponible.value = true }
-  catch (e) { error.value = e.message }
-  finally { cargando.value = false }
+  try { const t = await api('/torneos/' + route.params.id); if (actual !== version) return; Object.assign(form, { nombre: t.nombre, videojuego: t.videojuego, modalidad: t.modalidad, fechaInicio: localDate(t.fechaInicio), cierreInscripcion: localDate(t.cierreInscripcion), cupoMaximo: t.cupoMaximo, estado: t.estado, permiteEmpate: t.permiteEmpate }); disponible.value = true }
+  catch (e) { if (actual === version) error.value = e.message }
+  finally { if (actual === version) cargando.value = false }
 }
 async function guardar() {
   error.value = ''

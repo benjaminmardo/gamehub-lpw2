@@ -33,6 +33,7 @@ Frontend: http://localhost:5173. API: http://localhost:3000. Swagger: http://loc
 npm --prefix backend run build
 npm --prefix backend test -- --runInBand
 npm --prefix frontend run build
+npm --prefix backend run test:e2e
 ```
 
 ## Contratos y permisos
@@ -49,3 +50,5 @@ Para habilitar al administrador, registrar primero su cuenta en la aplicación y
 Se conserva el scaffold existente en `main`. `rama-benjamin` agrega cinco hitos; `rama-gian` parte de esa base e incorpora cinco; `rama-susana` integra ambos y agrega sus cinco. La versión completa quedará en `rama-susana`. Las integraciones por avance rápido no agregan commits de merge.
 
 Los commits usan la identidad Git real configurada. Las ramas organizan responsabilidades; no atribuyen automáticamente autoría a otras personas. Las guías `GUIA_PROYECTO.md` y `PASOS_BENJA.md` son referencias de planificación previas; para esta entrega rigen las ramas y mensajes del encargo actual. Se utilizó asistencia de IA para la implementación; cada integrante debe revisar y comprender su parte.
+
+El detalle de hitos, reglas, conteos de commits y pruebas reproducibles está en [docs/entrega.md](docs/entrega.md). La prueba integral requiere MySQL y crea/elimina únicamente sus datos temporales; el puerto 3100 debe estar libre.
