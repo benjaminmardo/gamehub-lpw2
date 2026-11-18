@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
+import { FiltrarTorneosDto } from './dto/filtrar-torneos.dto';
 import { CrearTorneoDto, ActualizarTorneoDto } from './dto/crear-torneo.dto';
 import { EstadoInscripcion, Inscripcion } from '../inscripciones/entities/inscripcion.entity';
 import { Torneo } from './entities/torneo.entity';
@@ -9,7 +10,24 @@ import { Torneo } from './entities/torneo.entity';
 export class TorneosService {
   constructor(@InjectRepository(Torneo) private readonly torneos: Repository<Torneo>) {}
 
-  findAll() { return this.torneos.find({ order: { fechaInicio: 'ASC', id: 'ASC' } }); }
+  findAll(filtros: FiltrarTorneosDto = {}) {
+    const query = this.torneos.createQueryBuilder('torneo');
+    if (filtros.q) {
+      query.andWhere(new Brackets((sub) => {
+        sub.where('torneo.nombre LIKE :texto', { texto: '%' + filtros.q + '%' })
+          .orWhere('torneo.videojuego LIKE :texto', { texto: '%' + filtros.q + '%' });
+      }));
+    }
+    if (filtros.videojuego) query.andWhere('torneo.videojuego = :videojuego', { videojuego: filtros.videojuego });
+    if (filtros.estado) query.andWhere('torneo.estado = :estado', { estado: filtros.estado });
+    if (filtros.modalidad) query.andWhere('torneo.modalidad = :modalidad', { modalidad: filtros.modalidad });
+    if (filtros.fecha) {
+      const desde = new Date(filtros.fecha + 'T00:00:00.000Z');
+      const hasta = new Date(desde.getTime() + 86_400_000);
+      query.andWhere('torneo.fechaInicio >= :desde AND torneo.fechaInicio < :hasta', { desde, hasta });
+    }
+    return query.orderBy('torneo.fechaInicio', 'ASC').addOrderBy('torneo.id', 'ASC').getMany();
+  }
 
   async findOne(id: number) {
     const torneo = await this.torneos.findOne({ where: { id } });
