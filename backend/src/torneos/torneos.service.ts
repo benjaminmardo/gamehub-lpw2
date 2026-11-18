@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CrearTorneoDto, ActualizarTorneoDto } from './dto/crear-torneo.dto';
+import { EstadoInscripcion, Inscripcion } from '../inscripciones/entities/inscripcion.entity';
 import { Torneo } from './entities/torneo.entity';
 
 @Injectable()
@@ -29,13 +30,18 @@ export class TorneosService {
   }
 
   async update(id: number, dto: ActualizarTorneoDto) {
-    const torneo = await this.findOne(id);
-    const { fechaInicio, cierreInscripcion, ...datos } = dto;
-    Object.assign(torneo, datos);
-    if (fechaInicio !== undefined) torneo.fechaInicio = new Date(fechaInicio);
-    if (cierreInscripcion !== undefined) torneo.cierreInscripcion = new Date(cierreInscripcion);
-    this.validarFechas(torneo);
-    return this.torneos.save(torneo);
+    return this.torneos.manager.transaction(async (manager) => {
+      const torneo = await manager.findOne(Torneo, { where: { id }, lock: { mode: 'pessimistic_write' } });
+      if (!torneo) throw new NotFoundException('Torneo no encontrado');
+      const { fechaInicio, cierreInscripcion, ...datos } = dto;
+      Object.assign(torneo, datos);
+      if (fechaInicio !== undefined) torneo.fechaInicio = new Date(fechaInicio);
+      if (cierreInscripcion !== undefined) torneo.cierreInscripcion = new Date(cierreInscripcion);
+      this.validarFechas(torneo);
+      const ocupados = await manager.count(Inscripcion, { where: { torneoId: id, estado: EstadoInscripcion.CONFIRMADA } });
+      if (torneo.cupoMaximo < ocupados) throw new ConflictException('El cupo no puede ser menor a los equipos inscritos');
+      return manager.save(Torneo, torneo);
+    });
   }
 
   async remove(id: number) {
