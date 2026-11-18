@@ -3,12 +3,16 @@ import { session, refreshProfile, isAdmin } from '../services/auth'
 const router = createRouter({
  history: createWebHistory(),
  routes: [
-  { path: '/', redirect: '/equipos' },
+  { path: '/', redirect: '/torneos' },
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { title: 'Iniciar sesión', guest: true } },
   { path: '/registro', name: 'registro', component: () => import('../views/RegisterView.vue'), meta: { title: 'Crear cuenta', guest: true } },
   { path: '/perfil', name: 'perfil', component: () => import('../views/PerfilView.vue'), meta: { title: 'Mi perfil', requiresAuth: true, nav: 'Mi perfil', icon: '◈' } },
   { path: '/equipos', name: 'equipos', component: () => import('../views/EquiposView.vue'), meta: { title: 'Equipos', nav: 'Equipos', icon: '◇' } },
   { path: '/equipos/:id', name: 'equipo-detalle', component: () => import('../views/EquipoDetalleView.vue'), meta: { title: 'Detalle del equipo' } },
+  { path: '/torneos', name: 'torneos', component: () => import('../views/TorneosView.vue'), meta: { title: 'Torneos', nav: 'Torneos', icon: '✦' } },
+  { path: '/torneos/nuevo', name: 'torneo-nuevo', component: () => import('../views/TorneoFormView.vue'), meta: { title: 'Crear torneo', requiresAuth: true, admin: true } },
+  { path: '/torneos/:id/editar', name: 'torneo-editar', component: () => import('../views/TorneoFormView.vue'), meta: { title: 'Editar torneo', requiresAuth: true, admin: true } },
+  { path: '/torneos/:id', name: 'torneo-detalle', component: () => import('../views/TorneoDetalleView.vue'), meta: { title: 'Detalle del torneo' } },
   { path: '/:pathMatch(.*)*', redirect: '/' },
  ],
 })
